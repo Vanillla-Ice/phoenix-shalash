@@ -10,6 +10,7 @@ fi
 ## sudo -u $USER <<EOF
 
 docker-compose up --build -d
+sleep 1
 
 docker-compose exec web python manage.py makemigrations app
 docker-compose exec web python manage.py migrate

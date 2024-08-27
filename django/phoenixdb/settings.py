@@ -120,7 +120,7 @@ LANGUAGE_CODE = 'ru'
 
 ## @var TIME_ZONE
 #  Default time zone for the Django application.
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 ## @var USE_I18N
 #  Boolean indicating whether Django’s translation system should be enabled.
