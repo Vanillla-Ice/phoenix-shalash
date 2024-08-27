@@ -4,4 +4,4 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def edit_behavior(request):
-    return render(request, 'core/edit_behavior.html')
+    return render(request, 'visit/edit_behavior.html')

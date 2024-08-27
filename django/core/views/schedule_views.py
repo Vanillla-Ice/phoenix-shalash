@@ -41,4 +41,4 @@ def schedule(request):
         'can_add_lesson': request.session['user_role'] == 'T'
     }
 
-    return render(request, 'core/schedule.html', context)
+    return render(request, 'schedule/schedule.html', context)

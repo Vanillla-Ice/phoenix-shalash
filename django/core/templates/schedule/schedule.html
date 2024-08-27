@@ -1,23 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles/global.css' %}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Расписание</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Расписание{% endblock %}
+{% block content %}
     <div class="container">
         <h1 class="my-3">Расписание</h1>
         <form method="get" class="form-inline mb-3">
             <div class="form-group mx-sm-3 mb-2">
                 <label for="start_date" class="sr-only">Дата начала / {{ start_date|date:'Y-m-d' }}</label>
-                <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+                <input type="date"
+                       class="form-control"
+                       id="start_date"
+                       name="start_date"
+                       value="{{ start_date|date:'Y-m-d' }}">
             </div>
             <div class="form-group mx-sm-3 mb-2">
                 <label for="end_date" class="sr-only">Дата конца / {{ end_date|date:'Y-m-d' }}</label>
-                <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+                <input type="date"
+                       class="form-control"
+                       id="end_date"
+                       name="end_date"
+                       value="{{ end_date|date:'Y-m-d' }}">
             </div>
             <button type="submit" class="btn btn-primary mb-2">Найти</button>
         </form>
@@ -34,9 +35,7 @@
                         <th>Время</th>
                         <th>Занятие</th>
                         <th>Группа</th>
-                        {% if can_add_lesson %}
-                            <th>Действия</th>
-                        {% endif %}
+                        {% if can_add_lesson %}<th>Действия</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -44,7 +43,7 @@
                         <tr>
                             <td>{{ lesson.lesson_date.date }}</td>
                             <td>{{ lesson.lesson_date.time }}</td>
-                            <td>{{ lesson.class_id.course_id.course_name}}</td>
+                            <td>{{ lesson.class_id.course_id.course_name }}</td>
                             <td>{{ lesson.class_id.group_id.group_name }}</td>
                             {% if can_add_lesson %}
                                 <td>
@@ -61,5 +60,4 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+{% endblock %}

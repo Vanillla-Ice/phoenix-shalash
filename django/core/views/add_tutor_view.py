@@ -23,4 +23,4 @@ def add_tutor(request):
     else:
         form = AddTutorForm()
     
-    return render(request, 'core/add_tutor.html', {'form': form})
+    return render(request, 'tutor/add_tutor.html', {'form': form})

@@ -1,14 +1,6 @@
-<!-- core/templates/core/methodist.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles/global.css' %}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Методист</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Методист{% endblock %}
+{% block content %}
     <div class="container">
         <h1>Методист</h1>
         <a href="{% url 'add_course' %}" class="btn btn-success mb-3">Добавить курс</a>
@@ -27,7 +19,8 @@
                         <td>{{ course.name }}</td>
                         <td>{{ course.group.name }}</td>
                         <td>
-                            <a href="{% url 'edit_course' course.pk %}" class="btn btn-primary btn-sm">Править</a>
+                            <a href="{% url 'edit_course' course.pk %}"
+                               class="btn btn-primary btn-sm">Править</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -35,5 +28,4 @@
         </table>
         <a href="{% url 'leader_view' %}" class="btn btn-secondary">На страницу ведущего</a>
     </div>
-</body>
-</html>
+{% endblock %}

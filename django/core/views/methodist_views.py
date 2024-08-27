@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 #
 @login_required
 def methodist(request):
-    return render(request, 'core/methodist.html')
+    return render(request, 'methodist/methodist.html')
 
 ## Displays the interface for adding a new course.
 #  @param request The HTTP request object.
@@ -24,7 +24,7 @@ def methodist(request):
 #
 @login_required
 def add_course(request):
-    return render(request, 'core/add_course.html')
+    return render(request, 'course/add_course.html')
 
 ## Displays the behavior management interface.
 #  @param request The HTTP request object.
@@ -32,4 +32,4 @@ def add_course(request):
 #
 @login_required
 def behavior(request):
-    return render(request, 'core/behavior.html')
+    return render(request, 'visit/edit_behavior.html')

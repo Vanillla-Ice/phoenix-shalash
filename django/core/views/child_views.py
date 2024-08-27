@@ -91,4 +91,4 @@ def child(request, child_id):
     }
 
     # Render and return the template with the context data.
-    return render(request, 'core/child.html', context)
+    return render(request, 'child/child.html', context)

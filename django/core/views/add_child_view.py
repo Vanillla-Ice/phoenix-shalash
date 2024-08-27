@@ -15,4 +15,4 @@ def add_child(request):
     else:
         form = AddChildForm()
     
-    return render(request, 'core/add_child.html', {'form': form})
+    return render(request, 'child/add_child.html', {'form': form})

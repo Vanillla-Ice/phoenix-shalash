@@ -4,4 +4,4 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def statistics(request):
-    return render(request, 'core/statistics.html')
+    return render(request, 'statistics/statistics.html')

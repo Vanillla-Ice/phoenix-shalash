@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Добавить занятие{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1 class="my-3">Добавить занятие</h1>
+        <form method="post" action="{% url 'add_new_lesson' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="teacher-select">Выбор учителя:</label>
+                <select id="teacher-select" name="teacher-select" class="form-control">
+                    <option value="">Выберите учителя</option>
+                    {% for teacher in possible_teachers %}
+                        <option value="{{ teacher.teacher_id }}">
+                            {{ teacher.teacher_id__surname }} {{
+                            teacher.teacher_id__name }} {{ teacher.teacher_id__patronymic }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="course-select">Выбор курса:</label>
+                <select id="course-select" name="course-select" class="form-control">
+                    <option value="">Сначала выберите учителя</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="group-select">Выбор группы:</label>
+                <select id="group-select" name="group-select" class="form-control">
+                    <option value="">Сначала выберите курс</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="choose-date">Дата:</label>
+                <div class="input-group date" id="choose-date" data-target-input="nearest">
+                    <input type="text"
+                           name="choose-date"
+                           class="form-control datetimepicker-input"
+                           data-target="#choose-date" />
+                    <div class="input-group-append"
+                         data-target="#choose-date"
+                         data-toggle="datetimepicker">
+                        <div class="input-group-text">
+                            <i class="fa fa-calendar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="choose-time">Время:</label>
+                <div class="input-group time" id="choose-time" data-target-input="nearest">
+                    <input type="text"
+                           name="choose-time"
+                           class="form-control datetimepicker-input"
+                           data-target="#choose-time" />
+                    <div class="input-group-append"
+                         data-target="#choose-time"
+                         data-toggle="datetimepicker">
+                        <div class="input-group-text">
+                            <i class="fa fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="duration">Длительность (минут):</label>
+                <input type="number" id="duration" name="duration" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Добавить занятие</button>
+            <a href="../../{{ user_homepage }}/" class="btn btn-secondary mt-3">На домашнюю страницу</a>
+            <a href="{% url 'schedule' %}" class="btn btn-secondary mt-3">Назад к просмотру расписания</a>
+        </form>
+
+        <h2 class="my-3">Ранее добавленные занятия</h2>
+        <div class="table-responsive">
+            <table id="lesson-table" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Время</th>
+                        <th>Курс</th>
+                        <th>Группа</th>
+                        <th>Преподаватель</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lesson in lessons %}
+                        <tr>
+                            <td>{{ lesson.lesson_date.date }}</td>
+                            <td>{{ lesson.lesson_date.time }}</td>
+                            <td>{{ lesson.class_id.course_id.course_name }}</td>
+                            <td>{{ lesson.class_id.group_id.group_name }}</td>
+                            <td>
+                                {{ lesson.class_id.teacher_id.name }} {{ lesson.class_id.teacher_id.surname }} {{
+                                lesson.class_id.teacher_id.patronymic }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="my-3">Занятия учителя на выбранный день</h2>
+        <div class="table-responsive">
+            <table id="teacher-lessons-table" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Время начала</th>
+                        <th>Время окончания</th>
+                        <th>Название предмета</th>
+                        <th>Имя группы</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Динамически заполняемые строки -->
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="my-3">Занятия группы на выбранный день</h2>
+        <div class="table-responsive">
+            <table id="group-lessons-table" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Время начала</th>
+                        <th>Время окончания</th>
+                        <th>Название предмета</th>
+                        <th>ФИО преподавателя</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Динамически заполняемые строки -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.39.0/js/tempusdominus-bootstrap-4.min.js"></script>
+{% endblock %}

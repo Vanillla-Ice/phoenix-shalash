@@ -4,4 +4,4 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def add_course(request):
-    return render(request, 'core/add_course.html')
+    return render(request, 'course/add_course.html')

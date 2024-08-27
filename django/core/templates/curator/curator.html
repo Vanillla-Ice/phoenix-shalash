@@ -1,14 +1,6 @@
-<!-- core/templates/core/curator.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles/global.css' %}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Куратор</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Куратор{% endblock %}
+{% block content %}
     <div class="container">
         <h1>Куратор</h1>
         <a href="{% url 'add_tutor' %}" class="btn btn-success mb-3">Добавить ведущего</a>
@@ -17,5 +9,4 @@
         <a href="{% url 'schedule' %}" class="btn btn-info mb-3">Посмотреть расписание</a>
         <a href="{% url 'attendance' %}" class="btn btn-primary mb-3">Посмотреть посещаемость</a>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -17,7 +17,7 @@ from core.forms import AddChildForm,  AddTutorForm, CreateGroupForm
 #
 @login_required
 def curator(request):
-    return render(request, 'core/curator.html')
+    return render(request, 'curator/curator.html')
 
 ## Displays the interface for adding a tutor.
 #  @param request The HTTP request object.
@@ -32,7 +32,7 @@ def add_tutor(request):
             return redirect('curator')  # Redirect to the curator dashboard or any other page
     else:
         form = AddTutorForm()
-    return render(request, 'core/add_tutor.html', {'form': form})
+    return render(request, 'tutor/add_tutor.html', {'form': form})
 
 ## Displays the interface for adding a child.
 #  @param request The HTTP request object.
@@ -48,7 +48,7 @@ def add_child(request):
     else:
         form = AddChildForm()
     
-    return render(request, 'core/add_child.html', {'form': form})
+    return render(request, 'child/add_child.html', {'form': form})
 
 ## Displays the interface for creating a new group.
 #  @param request The HTTP request object.
@@ -64,7 +64,7 @@ def add_group(request):
     else:
         form = CreateGroupForm()
     
-    return render(request, 'core/add_group.html', {'form': form})
+    return render(request, 'group/add_group.html', {'form': form})
 
 ## Displays the scheduling interface for curators.
 #  @param request The HTTP request object.
@@ -72,7 +72,7 @@ def add_group(request):
 #
 @login_required
 def schedule(request):
-    return render(request, 'core/schedule.html')
+    return render(request, 'schedule/schedule.html')
 
 ## Displays the attendance management interface.
 #  @param request The HTTP request object.
@@ -80,4 +80,4 @@ def schedule(request):
 #
 @login_required
 def attendance(request):
-    return render(request, 'core/attendance.html')
+    return render(request, 'attendance/attendance.html')

@@ -35,7 +35,7 @@ def attendance_view(request):
         'user_homepage' : page_name,
     }
 
-    return render(request, 'core/edit_attendance.html', context)
+    return render(request, 'attendance/edit_attendance.html', context)
 
 ## \brief Returns groups for a specific course.
 #  \param request The HTTP request object.

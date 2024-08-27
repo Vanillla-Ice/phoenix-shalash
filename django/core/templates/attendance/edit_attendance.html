@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Выбор группы{% endblock %}
+{% block content %}
+    <div class="container">
+        <h4>Выберете курс и группу, которой требуется выставить посещаемость в рамках этого курса</h4>
+        <form action='add-visit/' method='GET'>
+            <label for="course-select">Выбор предмета:</label>
+            <select class="course-select" name="course-select">
+                {% for course in selected_course %}
+                    <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="group-select">Select a group:</label>
+            <select class="group-select" name="group-select" style="min-width: 100px">
+                {% for group in selected_groups %}
+                    <option value="{{ group.group_id }}">{{ group.group_id__group_name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Перейти к выставлению посещаемости</button>
+        </form>
+
+        <a href="../{{ user_homepage }}/" class="btn btn-secondary">Назад к странице преподавателя</a>
+
+        <script>
+            $(document).ready(function() {
+                $('.course-select').change(function() {
+                    var courseId = $(this).val();
+                    if (courseId) {
+                        $('.group-select').empty();
+                        $.ajax({
+                            url: 'get-groups/' + courseId + '/',
+                            success: function(data) {
+                                var toAppend = '';
+                                for (var i = 0; i < data.length; i++) {
+                                    toAppend += '<option value="' + data[i].group_id + '">' + data[i].group_id__group_name + '</option>';
+                                    console.log(toAppend);
+                                }
+
+                                $('.group-select').append(toAppend);
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+        // Hide all textareas initially
+        $('textarea').hide();
+
+        // Show/hide textarea based on checkbox state
+        $('input[type="checkbox"]').change(function() {
+            if (this.checked) {
+                $(this).closest('tr').find('textarea').hide();
+            } else {
+                $(this).closest('tr').find('textarea').show();
+            }
+        });
+
+        // Check initial state of checkboxes and show/hide textarea accordingly
+        $('input[type="checkbox"]').each(function() {
+            if (this.checked) {
+                $(this).closest('tr').find('textarea').hide();
+            } else {
+                $(this).closest('tr').find('textarea').show();
+            }
+        });
+
+        // Show error notification if there's an error message
+        {% if messages %}
+            {% for message in messages %}
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ошибка при добавлении данных',
+                    text: '{{ message }}'
+                });
+            {% endfor %}
+        {% endif %}
+    });
+    </script>
+{% endblock %}

@@ -23,4 +23,4 @@ def add_child(request):
     else:
         form = CreateGroupForm()
     
-    return render(request, 'core/add_group.html', {'form': form})
+    return render(request, 'group/add_group.html', {'form': form})

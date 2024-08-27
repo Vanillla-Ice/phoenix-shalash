@@ -38,4 +38,4 @@ def tutor_view(request):
         'courses': courses,
     }
 
-    return render(request, 'core/tutor.html', context)
+    return render(request, 'tutor/tutor.html', context)

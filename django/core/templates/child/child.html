@@ -1,23 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles/global.css' %}">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-   <title>Информация о ребенке</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Информация о ребенке{% endblock %}
+{% block content %}
     <div class="container">
-        <h1></h1>
         <div class="card mb-3">
             <div class="card-header">
                 <h2>{{ child.name }} {{ child.surname }}</h2>
             </div>
             <div class="card-body">
-                <p><strong>Пол:</strong> {{ child.gender }}</p>
-                <p><strong>Дата рождения:</strong> {{ child.birthday }}</p>
-                <p><strong>Группа:</strong>
+                <p>
+                    <strong>Пол:</strong> {{ child.gender }}
+                </p>
+                <p>
+                    <strong>Дата рождения:</strong> {{ child.birthday }}
+                </p>
+                <p>
+                    <strong>Группа:</strong>
                     {% if child.current_group %}
                         {{ child.current_group.track_type.track_type_id }}
                     {% else %}
@@ -32,9 +29,7 @@
                 </ul>
                 <h4>Курсы</h4>
                 <ul>
-                    {% for course in courses %}
-                        <li>{{ course.course_name }}</li>
-                    {% endfor %}
+                    {% for course in courses %}<li>{{ course.course_name }}</li>{% endfor %}
                 </ul>
             </div>
         </div>
@@ -67,7 +62,7 @@
 
         <div class="card mb-3">
             <div class="card-header">
-                <h3>Предстоящие занятия </h3>
+                <h3>Предстоящие занятия</h3>
             </div>
             <div class="card-body">
                 <table class="table table-striped">
@@ -98,10 +93,13 @@
             <div class="card-body">
                 <ul>
                     {% for parent, parent_phones in parents %}
-                        <li>{{ parent.name }} {{ parent.surname }}, приходится: {{ parent.role }}; <br>
-                            &#10; Номера телефонов: 
+                        <li>
+                            {{ parent.name }} {{ parent.surname }}, приходится: {{ parent.role }};
+                            <br>
+                            Номера телефонов:
                             {% for phone in parent_phones %}
-                                {{ phone.phone_number }}{% if not forloop.last %}, {% endif %}
+                                {{ phone.phone_number }}
+                                {% if not forloop.last %},{% endif %}
                             {% endfor %}
                         </li>
                     {% endfor %}
@@ -154,9 +152,7 @@
                 </form>
                 <h4>Посещаемость</h4>
                 <ul>
-                    {% for entry in attendance %}
-                        <li>{{ entry.visited }}: {{ entry.count }}</li>
-                    {% endfor %}
+                    {% for entry in attendance %}<li>{{ entry.visited }}: {{ entry.count }}</li>{% endfor %}
                 </ul>
                 <h4>Оценка навыков</h4>
                 <p>Средняя оценка навыков: {{ skill_analysis.mark__avg }}</p>
@@ -165,5 +161,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

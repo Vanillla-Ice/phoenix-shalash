@@ -69,7 +69,7 @@ def add_visit(request, class_id):
     if user_role == 'C':
         page_name = 'curator'
 
-    return render(request, 'core/add_visit.html', {
+    return render(request, 'visit/add_visit.html', {
         'child_form_list': child_form_list,
         'group_class': group_class,
         'lessons': lessons,

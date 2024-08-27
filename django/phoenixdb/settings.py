@@ -1,4 +1,4 @@
-## @package settings
+# @package settings
 #  Django project settings for the 'phoenixdb' application.
 #  This module configures settings like database connections, installed applications,
 #  middleware, templates, and more for a Django web application.
@@ -7,27 +7,27 @@ import os
 from pathlib import Path
 import socket
 
-## @var BASE_DIR
+# @var BASE_DIR
 #  Absolute path to the base directory of the project.
 #  This is used to define paths to various configuration directories.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-## @var SECRET_KEY
+# @var SECRET_KEY
 #  Secret key for the Django application, typically used for cryptographic signing.
 #  This key is fetched from the environment variables, with a fallback default if not set.
 SECRET_KEY = os.environ.get('SECRET_KEY', 'your-default-secret-key')
 
-## @var DEBUG
+# @var DEBUG
 #  Boolean flag indicating if the application is running in debug mode.
 #  Debug mode provides detailed error pages and other development aids.
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-## @var ALLOWED_HOSTS
+# @var ALLOWED_HOSTS
 #  List of host/domain names that this Django site can serve.
 #  This is used for security measures to prevent HTTP Host header attacks.
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
-## @var INSTALLED_APPS
+# @var INSTALLED_APPS
 #  List of applications that are enabled in this Django instance.
 #  Each application makes Django capable of handling different web functionalities.
 INSTALLED_APPS = [
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
 ]
 
-## @var MIDDLEWARE
+# @var MIDDLEWARE
 #  List of middleware to handle requests during response and request phases.
 #  Middleware are hooks into Django's request/response processing.
 MIDDLEWARE = [
@@ -54,11 +54,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'app.middleware.RoleBasedAccessMiddleware',  # Добавляем наше кастомное middleware
+    # Добавляем наше кастомное middleware
+    'app.middleware.RoleBasedAccessMiddleware',
 ]
 
 
-## @var ROOT_URLCONF
+# @var ROOT_URLCONF
 #  A string representing the full Python import path to your root URLconf.
 #  This tells Django where to find the URL configuration for the project.
 ROOT_URLCONF = 'phoenixdb.urls'
@@ -80,7 +81,7 @@ TEMPLATES = [
     },
 ]
 
-## @var DATABASES
+# @var DATABASES
 #  Database configuration.
 #  Specifies the database engine and connection details fetched from environment variables.
 DATABASES = {
@@ -94,7 +95,7 @@ DATABASES = {
     }
 }
 
-## @var AUTH_PASSWORD_VALIDATORS
+# @var AUTH_PASSWORD_VALIDATORS
 #  Configuration for password validation.
 #  Specifies the validators that are used to check the strength and validity of user passwords.
 AUTH_PASSWORD_VALIDATORS = [
@@ -118,35 +119,35 @@ AUTHENTICATION_BACKENDS = [
 
 LANGUAGE_CODE = 'ru'
 
-## @var TIME_ZONE
+# @var TIME_ZONE
 #  Default time zone for the Django application.
 TIME_ZONE = 'Europe/Moscow'
 
-## @var USE_I18N
+# @var USE_I18N
 #  Boolean indicating whether Django’s translation system should be enabled.
 USE_I18N = True
 
-## @var USE_L10N
+# @var USE_L10N
 #  Boolean indicating whether localized formatting of data will be enabled by default.
 USE_L10N = True
 
-## @var USE_TZ
+# @var USE_TZ
 #  Boolean indicating whether Django will use timezone-aware datetimes.
 USE_TZ = True
 
-## @var STATIC_URL
+# @var STATIC_URL
 #  URL to use when referring to static files located in STATIC_ROOT.
 STATIC_URL = '/static/'
 
-## @var STATIC_ROOT
+# @var STATIC_ROOT
 #  The absolute path to the directory where collectstatic will collect static files for deployment.
 STATIC_ROOT = BASE_DIR / 'core' / 'static'
 
-## @var MEDIA_URL
+# @var MEDIA_URL
 #  URL that handles the media served from MEDIA_ROOT, used for managing stored media.
 MEDIA_URL = '/media/'
 
-## @var MEDIA_ROOT
+# @var MEDIA_ROOT
 #  The absolute path to the directory where all uploaded media files are stored.
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -154,10 +155,9 @@ LOGIN_REDIRECT_URL = '/tutor/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 
-## @var DEFAULT_AUTO_FIELD
+# @var DEFAULT_AUTO_FIELD
 #  The default type of primary key to use for new models if the model doesn’t explicitly specify.
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
 INTERNAL_IPS = [ip[:-1] + "1" for ip in ips]
-

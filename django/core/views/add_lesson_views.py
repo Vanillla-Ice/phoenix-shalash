@@ -48,7 +48,7 @@ def add_lesson(request: HttpRequest) -> HttpResponse:
         'user_homepage' : page_name,
     }
     
-    return render(request, 'core/add_lesson.html', context)
+    return render(request, 'lesson/add_lesson.html', context)
 
 
 def get_courses_by_teacher(request: HttpRequest) -> JsonResponse:

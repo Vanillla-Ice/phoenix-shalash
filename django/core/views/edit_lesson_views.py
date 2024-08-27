@@ -4,4 +4,4 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def edit_lesson(request):
-    return render(request, 'core/edit_lesson.html')
+    return render(request, 'lesson/edit_lesson.html')
