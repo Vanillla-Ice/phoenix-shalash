@@ -392,7 +392,7 @@ class Report(models.Model):
     add_time = models.TimeField(auto_now_add=True, db_column="add_time")
 
     class Meta:
-        db_table = "report"
+        db_table = "reports"
         
         constraints = [
             models.UniqueConstraint(fields=['child_id', 'class_id', 'semester', 'filename'], name='primary_reports')
