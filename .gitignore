@@ -7,3 +7,5 @@ venv/
 .venv
 .env
 docs/
+env/
+django/app/migrations/
