@@ -1,7 +1,663 @@
 {% extends "base.html" %}
 {% block title %}Рубрикатор поведения{% endblock %}
 {% block content %}
-    <div class="container">
-        <h1>Рубрикатор поведения</h1>
+    <style>
+    .hidden {
+        display: none;
+    }
+
+    .visible {
+        display: inline;
+    }
+
+    .button-group button {
+        margin-right: 5px;
+        padding: 10px 15px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background-color: #f4f4f4;
+        transition: background-color 0.1s, color 0.1s;
+    }
+
+    .button-group button.selected {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
+
+    .button-group button:hover {
+        background-color: #e0e0e0;
+    }
+    </style>
+    <div class="content">
+        <div class="markContainer">
+            <h1>Выберите группу и дату урока для оценивания для оценивания</h1>
+        </div>
+        <div class="group-select-container">
+            <label for="groupSelect">Выбор группы</label>
+            <select id="groupSelect">
+                {% for group in groups %}<option value="{{ group.group_id }}">{{ group.group_name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="date-time-select-container hidden">
+            <label>Выбор даты занятия</label>
+            <select id="dateSelect"></select>
+            <label>Выбор времени занятия</label>
+            <select id="timeSelect"></select>
+        </div>
+        <div class="start-assessment-button-container">
+            <button id="startAssessmentButton">Начать оценивание</button>
+        </div>
+        <div class="assessment-info-container"></div>
+        <div class="nav-bar-container"></div>
+        <div class="assessment-process-container"></div>
+        <div class="nav-bar-container"></div>
+        <div class="save-assessment-button-container">
+            <button id="saveAssessmentButton">Сохранить всё</button>
+        </div>
     </div>
+
+    <div id="toast"
+         style="visibility: hidden;
+                min-width: 250px;
+                margin-left: -125px;
+                background-color: #333;
+                color: #fff;
+                text-align: center;
+                border-radius: 5px;
+                padding: 16px;
+                position: fixed;
+                z-index: 1;
+                left: 50%;
+                bottom: 30px;
+                font-size: 17px;
+                opacity: 0;
+                transition: opacity 0.5s, visibility 0.5s"></div>
+
+    <script src="//cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const csrftoken = Cookies.get('csrftoken');
+
+        class ApiService {
+            constructor(csrftoken) {
+                this.csrftoken = csrftoken
+                this.defaultGetRequestOptions = {
+                    method: 'GET',
+                    headers: { 'X-CSRFToken': csrftoken },
+                    mode: 'same-origin',
+                };
+                this.defaultPostRequestOptions = {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken },
+                    mode: 'same-origin',
+                };
+            }
+            async fetchData(url, options) {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error("Bad response " + response.statusText);
+                }
+                return response.json();
+            }
+        }
+
+        class UIController {
+            constructor(apiService, rootElement) {
+                this.apiService = apiService;
+                this.rootElement = rootElement;
+
+                this.groupSelectorContainer = rootElement.querySelector('.group-select-container');
+                this.dateTimeSelectorContainer = rootElement.querySelector('.date-time-select-container');
+                this.startAssessmentButtonContainer = rootElement.querySelector('.start-assessment-button-container');
+                this.assessmentInfoContainer = rootElement.querySelector('.assessment-info-container');
+                this.assessmentProcessContainer = rootElement.querySelector('.assessment-process-container');
+                this.saveAssessmentButtonContainer = rootElement.querySelector('.save-assessment-button-container');
+
+
+                this.navBarContainers = rootElement.querySelectorAll('.nav-bar-container');
+
+                this.groupSelector = new GroupSelector(this.apiService, this.groupSelectorContainer);
+                this.DateTimeSelector = new DateTimeSelector(this.dateTimeSelectorContainer);
+                this.assessmentInfoBlock = new AssessmentInfoBlock(this.assessmentInfoContainer);
+                this.assessmentProcessBlock = new AssessmentProcessBlock(this.apiService, this.assessmentProcessContainer, this.assessmentInfoBlock);
+
+                this.groupSelector.setOnGroupChangeCallback(lessonsDatesClasses => this.processLessonsDates(lessonsDatesClasses));
+
+
+                this.navBars = [];
+                this.navBarContainers.forEach(item => {
+                    this.navBars.push(new NavigationBar(this.assessmentProcessBlock, item));
+                })
+
+                this.assessmentProcessBlock.setUpdateNavBarsCallback(() => {
+                    this.navBars.forEach(navBar => {
+                        navBar.update();
+                    });
+                });
+
+                this.startAssessmentButton = this.startAssessmentButtonContainer.querySelector('#startAssessmentButton');
+                this.startAssessmentButton.addEventListener('click', () => this.startAssessment());
+
+                this.saveAssessmentButton = this.saveAssessmentButtonContainer.querySelector('#saveAssessmentButton');
+                this.saveAssessmentButton.addEventListener('click', () => this.assessmentProcessBlock.saveAssessment());
+
+                this.groupSelector.onGroupChange();
+
+            }
+
+            processLessonsDates(lessonsDatesClasses) {
+                console.log('Получены даты:');
+                console.log(lessonsDatesClasses);
+                let dates = []
+                lessonsDatesClasses.forEach(item => {
+                    const date = new Date(item.lesson_date);
+                    dates.push({
+                        'dateRaw': date,
+                        'date': date.toLocaleDateString('ru-RU'),
+                        'time': date.toLocaleTimeString('ru-RU'),
+                        'classId': item['class_id'],
+                    });
+                });
+
+                console.log('Даты обработаны:');
+                console.log(dates);
+                this.DateTimeSelector.updateDates(dates);
+                this.DateTimeSelector.show();
+
+            }
+
+            startAssessment() {
+                console.log('Нажата кнопка начала оценивания! Начато оценивание.');
+                let selectedValueDict = this.DateTimeSelector.getSelectedValueDict();
+
+                if (selectedValueDict) {
+                    const dateRaw = selectedValueDict.dateRaw;
+                    const classId = selectedValueDict.classId;
+                    this.assessmentProcessBlock.loadLesson(dateRaw, classId);
+                }
+
+            }
+        }
+        class GroupSelector {
+            constructor(apiService, rootElement) {
+                this.apiService = apiService;
+                this.rootElement = rootElement;
+                this.groupSelect = this.rootElement.querySelector('#groupSelect');
+                this.groupSelect.addEventListener('change', () => this.onGroupChange());
+            }
+            async onGroupChange() {
+                console.log('Изменена группа');
+                const selectedGroupId = this.groupSelect.value;
+                const url = `/edit_behavior/get_lessons_for_group/${selectedGroupId}/`;
+                const lessonsDatesClasses = await this.apiService.fetchData(url, apiService.defaultGetRequestOptions);
+                this.onGroupChangeCallback(lessonsDatesClasses);
+            }
+            setOnGroupChangeCallback(callback) {
+                this.onGroupChangeCallback = callback;
+            }
+        }
+
+        class DateTimeSelector {
+            constructor(rootElement) {
+                this.rootElement = rootElement;
+                this.dateSelect = this.rootElement.querySelector('#dateSelect');
+                this.timeSelect = this.rootElement.querySelector('#timeSelect');
+                this.currentChosenDates = [];
+                this.dateSelect.addEventListener('change', () => this.updateTimes());
+            }
+            updateDates(dates) {
+                console.log('Обновляются даты');
+                this.currentChosenDates = dates;
+                this.dateSelect.innerHTML = '';
+                this.uniqueDateOptions = [...new Set(dates.map(item => item.date))];
+
+                this.uniqueDateOptions.forEach(dateStr => {
+                    const option = new Option(dateStr, dateStr);
+                    this.dateSelect.appendChild(option);
+                })
+
+                if (this.uniqueDateOptions.length == 0) {
+                    console.log('Для данной группы не найдены даты занятий.');
+                    showToast('Для данной группы не найдены даты занятий.');
+                }
+                else {
+                    this.updateTimes();
+                }
+            }
+
+            updateTimes() {
+                console.log('Обновляются времена');
+                this.timeSelect.innerHTML = '';
+                const selectedDateStr = this.dateSelect.value;
+                const timeOptions = [... new Set(this.currentChosenDates.filter(item => item.date == selectedDateStr).map(item => item.time))];
+
+                timeOptions.forEach(timeStr => {
+                    const option = new Option(timeStr, timeStr);
+                    this.timeSelect.appendChild(option);
+                })
+
+                if (timeOptions.length == 0) {
+                    console.log('У занятий на данную дату не найдено время.');
+                    showToast('У занятий на данную дату не стоит время.');
+                }
+            }
+
+            getSelectedValueDict() {
+                const selectedDateStr = this.dateSelect.value;
+                const selectedTimeStr = this.timeSelect.value;
+
+                const selectedValueDict = this.currentChosenDates.find(item => item.date == selectedDateStr && item.time == selectedTimeStr);
+                if (selectedValueDict) return selectedValueDict;
+                else {
+                    console.log('Ошибка поиска выбранной даты.');
+                    return null;
+                }
+            }
+
+            show() {
+                this.rootElement.classList.remove('hidden');
+            }
+
+            hide() {
+                this.rootElement.classList.add('hidden');
+            }
+        }
+
+
+        class AssessmentInfoBlock {
+            constructor(rootElement) {
+                this.rootElement = rootElement;
+                this.courseNameLabel = document.createElement('label');
+                this.childNameLabel = document.createElement('label');
+
+                this.rootElement.appendChild(this.courseNameLabel);
+                this.rootElement.appendChild(this.childNameLabel);
+            }
+            setCourseName(name) {
+                console.log('Устанавливаю информацию: ' + name);
+                this.courseNameLabel.textContent = name;
+            }
+            setChildName(name) {
+                console.log('Устанавливаю информацию: ' + name);
+                this.childNameLabel.textContent = name;
+            }
+        }
+
+
+        class NavigationBar {
+            constructor(assessmentBlock, rootElement) {
+                this.assessmentBlock = assessmentBlock;
+                this.rootElement = rootElement;
+
+                this.buttonPreviousChild = document.createElement('button');
+                this.buttonNextChild = document.createElement('button');
+
+                this.buttonPreviousChild.textContent = 'Предыдущий ребенок';
+                this.buttonNextChild.textContent = 'Следующий ребенок';
+
+                this.rootElement.appendChild(this.buttonPreviousChild);
+                this.rootElement.appendChild(this.buttonNextChild);
+
+                this.buttonPreviousChild.addEventListener('click', () => this.prevChild());
+                this.buttonNextChild.addEventListener('click', () => this.nextChild());
+
+                this.hidePrevButton();
+                this.hideNextButton();
+            }
+
+            update() {
+                if (this.assessmentBlock.visits.length < 2 || this.assessmentBlock.currentVisitId === 0) {
+                    this.hidePrevButton();
+                } else {
+                    this.showPrevButton();
+                }
+
+                if (this.assessmentBlock.visits.length < 2 || this.assessmentBlock.currentVisitId === this.assessmentBlock.visits.length - 1) {
+                    this.hideNextButton();
+                } else {
+                    this.showNextButton();
+                }
+
+            }
+
+            prevChild() {
+                const isChildDataSaved = this.assessmentBlock.saveCurrentChildAssessmentData();
+                if (isChildDataSaved) {
+                    console.log('Предыдущий ребенок');
+                    this.assessmentBlock.currentVisitId--;
+                    this.update();
+                    this.assessmentBlock.updateUI();
+                }
+                else console.log('Данные не были сохранены.');
+            }
+
+            nextChild() {
+                const isChildDataSaved = this.assessmentBlock.saveCurrentChildAssessmentData();
+                if (isChildDataSaved) {
+                    console.log('Следующий ребенок');
+                    this.assessmentBlock.currentVisitId++;
+                    this.update();
+                    this.assessmentBlock.updateUI();
+                }
+                else console.log('Данные не были сохранены.');
+            }
+
+            hideNextButton() {
+                this.buttonNextChild.classList.add('hidden');
+            }
+
+            showNextButton() {
+                this.buttonNextChild.classList.remove('hidden');
+            }
+
+            hidePrevButton() {
+                this.buttonPreviousChild.classList.add('hidden');
+            }
+
+            showPrevButton() {
+                this.buttonPreviousChild.classList.remove('hidden');
+            }
+        }
+
+
+        class AssessmentProcessBlock {
+            constructor(apiService, rootElement, assessmentInfoBlock) {
+                this.apiService = apiService;
+                this.rootElement = rootElement;
+                this.assessmentInfoBlock = assessmentInfoBlock;
+
+                this.visits = []
+                this.currentVisitId = 0;
+
+                this.currentLessonAssessmentResults = [];
+            }
+
+            setUpdateNavBarsCallback(callback) {
+                this.updateNavBarsCallback = callback;
+            }
+
+            loadLesson(dateRaw, classId) {
+                const year = dateRaw.getFullYear();
+                const month = dateRaw.getMonth() + 1;
+                const day = dateRaw.getDate();
+
+                const hours = dateRaw.getHours();
+                const minutes = dateRaw.getMinutes();
+                const seconds = dateRaw.getSeconds();
+
+                var url = `/edit_behavior/${year}/${month}/${day}/${hours}/${minutes}/${seconds}/${classId}/`;
+
+                this.getAllAssessmentData(url)
+            }
+
+            async getAllAssessmentData(url) {
+                const assessmentData = await this.apiService.fetchData(url, apiService.defaultGetRequestOptions);
+                console.log(assessmentData);
+                this.courseId = assessmentData.course_id;
+                this.courseName = assessmentData.course_name;
+                this.markTypes = assessmentData.mark_types;
+                this.markCategories = assessmentData.mark_categories;
+                this.visits = assessmentData.visits;
+
+                if (this.visits.length > 0) {
+                    this.updateUI();
+                }
+                else {
+                    console.log('Урок никто не посетил :(');
+                    showToast('Выбранный урок никто не посетил.');
+                }
+            }
+
+            updateUI() {
+                const currentVisit = this.visits[this.currentVisitId];
+                console.log('Устанавливаю информацию: ' + this.courseName + ' ' + currentVisit.child_surname);
+                this.assessmentInfoBlock.setCourseName(`Курс: ${this.courseName}`);
+                this.assessmentInfoBlock.setChildName(`${currentVisit.child_surname} ${currentVisit.child_name} ${currentVisit.child_patronymic}`);
+
+                const savedSessionVisit = this.getVisitFromSessionStorage(currentVisit.visit_id);
+
+                this.rootElement.innerHTML = '';
+                if (this.markCategories.length > 0) {
+                    for (const item of this.markCategories) {
+                        const markCategoryName = item.mark_category;
+                        const markCategoryDescription = item.mark_category_description;
+
+                        const markCategoryContainer = document.createElement('div');
+                        this.rootElement.appendChild(markCategoryContainer);
+
+                        const markCategoryLabel = document.createElement('label');
+                        markCategoryContainer.appendChild(markCategoryLabel);
+
+                        markCategoryLabel.textContent = markCategoryName;
+                        markCategoryLabel.setAttribute('title', markCategoryDescription);
+
+                        for (const markType of this.markTypes) {
+                            const markTypeCategoryName = markType.mark_category;
+                            if (markTypeCategoryName == markCategoryName) {
+                                const markTypeId = markType.mark_type_id;
+                                const markTypeName = markType.description;
+                                const markTypeMinValue = markType.min_value;
+                                const markTypeMaxValue = markType.max_value;
+
+                                const markTypeContainer = document.createElement('div');
+                                markCategoryContainer.appendChild(markTypeContainer);
+
+                                let value = null;
+                                if (savedSessionVisit) {
+                                    value = savedSessionVisit.marks[markTypeId];
+                                }
+
+                                this.buildMarkBlock(markTypeId, markTypeName, markTypeMinValue, markTypeMaxValue, markTypeContainer, value);
+                            }
+                        }
+
+                    }
+                }
+
+                this.updateNavBarsCallback();
+            }
+
+            buildMarkBlock(markId, markDescription, minValue, maxValue, parentTag, value = null) {
+                const marksContainer = document.createElement('div');
+                marksContainer.classList.add('mark-grid');
+
+                const label = document.createElement('label');
+                label.textContent = markDescription;
+                marksContainer.appendChild(label);
+
+                const buttonGroupContainer = document.createElement('div');
+                buttonGroupContainer.classList.add('button-group');
+                buttonGroupContainer.setAttribute('mark-id', markId);
+
+                for (let i = minValue; i <= maxValue; i++) {
+                    const button = document.createElement('button');
+                    button.textContent = i;
+                    buttonGroupContainer.appendChild(button);
+                    if (value == i) {
+                        button.classList.add('selected')
+                    }
+                    button.addEventListener('click', () {
+                        this.saveCurrentChildAssessmentData();
+                        buttonGroupContainer.querySelectorAll('button').forEach(btn => {
+                            btn.classList.remove('selected');
+                        })
+                        button.classList.add('selected');
+                    })
+                }
+                marksContainer.appendChild(buttonGroupContainer);
+                parentTag.appendChild(marksContainer);
+            }
+
+            saveCurrentChildAssessmentData() {
+                let currentChildAssessmentData = this.getCurrentChildAssessmentData();
+
+                console.log('currentChildAssessmentData:' + currentChildAssessmentData);
+                if (currentChildAssessmentData) {
+                    console.log(currentChildAssessmentData);
+                    this.addVisitToSessionStorage(currentChildAssessmentData);
+                    return true;
+                }
+                else {
+                    console.log('Не все оценки проставлены.');
+                    showToast('Не все оценки проставлены.');
+                    return false;
+                }
+            }
+
+            saveAssessment() {
+                this.visits.forEach(item => {
+                    const visitDict = this.getVisitFromSessionStorage(item.visit_id);
+                    console.log('Визит ' + item.visit_id + ' в локальной сессии:');
+                    console.log(visitDict);
+                    if (visitDict == null) {
+                        console.log('В локальной сессии не сохранен визит ' + item.visit_id);
+                        this.saveCurrentChildAssessmentData();
+                    }
+                });
+
+                let assessmentDataToFetch = [];
+                
+                const visitIds = [... new Set(this.visits.map(item => item.visit_id))];
+
+                visitIds.forEach(id => {
+                    const visitDict = this.getVisitFromSessionStorage(id);
+                    if (visitDict != null) assessmentDataToFetch.push(visitDict);
+                });
+
+                assessmentDataToFetch.forEach(item => {
+                     Object.values(item['marks']).forEach(mark => {
+                     if (mark == -1 || mark == null || mark == undefined) {
+                            showToast('У детей проставлены не все оценки.');
+                            return;
+                        }
+                    });
+                });
+
+                if (assessmentDataToFetch.length != 0) {
+                    console.log('Попытка отправить данные на сервер:')
+                    console.log(assessmentDataToFetch);
+                    const url = 'edit_behavior/save/';
+                    let requestOptions = this.apiService.defaultPostRequestOptions;
+                    requestOptions['content'] = assessmentDataToFetch;
+                    this.apiService.fetchData(url, requestOptions);
+                }
+                else {
+                    showToast('Не удается отправить данные оценивания на сервер.');
+                }
+
+            }
+
+            getCurrentChildAssessmentData() {
+                console.log('Получаю данные о проставленных оценках ребенка.');
+                const currentVisitId = this.visits[this.currentVisitId].visit_id;
+                let currentChildAssessmentData = {
+                    'visit_id': currentVisitId,
+                    'marks': {}
+                };
+
+                for (const markType of this.markTypes) {
+                    const markTypeId = markType['mark_type_id'];
+                    const markTypeMinValue = markType['min_value'];
+                    const markTypeMaxValue = markType['max_value'];
+                    const currentButtonGroup = document.querySelector(`[mark-id='${markTypeId}']`);
+
+                    const markButtons = currentButtonGroup.children;
+
+                    console.log('markType=' + markTypeId + '\n');
+                    var setMark = -1;
+                    for (const markButton of markButtons) {
+                        console.log(markButton);
+                        if (markButton.classList.contains('selected')) {
+                            setMark = markButton.textContent;
+                            break;
+                        }
+                    }
+                    console.log(`Прочитана оценка ${markTypeId}. Она равна ${setMark}.`);
+                    if (setMark == -1) {
+                        return null;
+                    }
+
+                    currentChildAssessmentData.marks[markTypeId] = setMark;
+
+                    console.log(`Оценка ${markTypeId} равна ${setMark}.`);
+                }
+
+                return currentChildAssessmentData;
+            }
+
+
+
+            addVisitToSessionStorage(dict) {
+                if (dict.visit_id != undefined && dict.marks != undefined) {
+                    const storedList = sessionStorage.getItem('savedVisits');
+                    let list = storedList ? JSON.parse(storedList) : [];
+                    list.push(dict);
+                    sessionStorage.setItem('savedVisits', JSON.stringify(list));
+                }
+                else {
+                    console.log('Не удается сохранить визит: недостаточно данных.');
+                }
+
+            }
+
+            addVisitToSessionStorage(dict) {
+                if (dict.visit_id !== undefined && dict.marks !== undefined) {
+                    const storedList = sessionStorage.getItem('savedVisits');
+                    let list = storedList ? JSON.parse(storedList) : [];
+
+                    const existingIndex = list.findIndex(item => item.visit_id === dict.visit_id);
+
+                    if (existingIndex !== -1) {
+                        list[existingIndex] = dict;
+                    } else {
+                        list.push(dict);
+                    }
+
+                    sessionStorage.setItem('savedVisits', JSON.stringify(list));
+
+                    console.log('Сохраненные визиты:', list);
+                } else {
+                    console.log('Не удается сохранить визит: недостаточно данных.');
+                }
+            }
+
+            getVisitFromSessionStorage(visitId) {
+                const storedList = sessionStorage.getItem('savedVisits');
+                let list = storedList ? JSON.parse(storedList) : null;
+
+                if (list && Number.isInteger(visitId) && visitId >= 0) {
+                    let visit = list.find(item => item.visit_id == visitId)
+                    if (visit != undefined) {
+                        return visit;
+                    }
+                    else return null;
+
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+
+        function showToast(message, duration = 1000) {
+            console.log(`Уведомление: ${message}`);
+            const toast = document.getElementById('toast');
+
+            toast.textContent = message;
+            toast.style.visibility = 'visible';
+            toast.style.opacity = '1';
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.visibility = 'hidden';
+            }, duration);
+        }
+
+        contentContainer = document.querySelector('.content');
+
+        apiService = new ApiService(csrftoken);
+        uiController = new UIController(apiService, contentContainer);
+    });
+    </script>
 {% endblock %}

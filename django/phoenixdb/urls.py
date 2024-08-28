@@ -31,5 +31,6 @@ urlpatterns = [
     path('schedule/', include('core.urls.schedule')),  # Includes all URL patterns for schedule module.
     path('child/', include('core.urls.child')),  # Includes all URL patterns for child module.
     path('statistics/', include('core.urls.statistics')),  # Includes all URL patterns for statistics module.
+    path('edit_behavior/', include('core.urls.edit_behavior')),
     path('', lambda request: redirect('login')),  # Redirects root requests to login page.
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + debug_toolbar_urls()
